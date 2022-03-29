@@ -95,6 +95,7 @@ public class LoginForm extends JDialog {
 
             if (resultSet.next()) {
                 user = new User();
+                user.id = resultSet.getInt("id");
                 user.name = resultSet.getString("name");
                 user.email = resultSet.getString("email");
                 user.indexNumber = resultSet.getString("indexNumber");

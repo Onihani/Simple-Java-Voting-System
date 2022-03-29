@@ -106,12 +106,14 @@
                     <properties/>
                     <border type="etched"/>
                     <children>
-                      <component id="f9c6" class="javax.swing.JRadioButton" binding="voteForCandidateNameRadioButton" default-binding="true">
+                      <component id="f9c6" class="javax.swing.JRadioButton" binding="voteForOnealRadioButton">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
+                          <actionCommand value="1"/>
                           <hideActionText value="false"/>
+                          <selected value="false"/>
                           <text value="Vote For Candidate Name"/>
                         </properties>
                       </component>
@@ -170,11 +172,12 @@
                     <properties/>
                     <border type="etched"/>
                     <children>
-                      <component id="67147" class="javax.swing.JRadioButton" binding="voteForCandidateNameRadioButton1" default-binding="true">
+                      <component id="67147" class="javax.swing.JRadioButton" binding="voteForFredaRadioButton">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
+                          <actionCommand value="2"/>
                           <text value="Vote For Candidate Name"/>
                         </properties>
                       </component>
@@ -506,7 +509,6 @@
   </grid>
   <buttonGroups>
     <group name="presidentialCandidatesButtonGroup">
-      <member id="f9c6"/>
       <member id="67147"/>
     </group>
     <group name="secreatariesButtonGroup">
@@ -517,6 +519,9 @@
     <group name="tresurersButtonGroup">
       <member id="6bd74"/>
       <member id="b3f9"/>
+    </group>
+    <group name="presidentialCandidatesButtonGroup">
+      <member id="f9c6"/>
     </group>
   </buttonGroups>
 </form>

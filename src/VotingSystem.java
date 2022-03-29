@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.sql.*;
@@ -9,9 +8,9 @@ public class VotingSystem {
     private static JFrame aboutWindowFrame; // Frame for about window JWindow
     public User user;
     private JPanel mainPanel;
-    private JRadioButton voteForCandidateNameRadioButton;
+    private JRadioButton voteForOnealRadioButton;
     private JButton presidentialVoteButton;
-    private JRadioButton voteForCandidateNameRadioButton1;
+    private JRadioButton voteForFredaRadioButton;
     private JRadioButton voteForCandidateNameRadioButton2;
     private JButton loginButton;
     private JButton registerButton;
@@ -23,10 +22,16 @@ public class VotingSystem {
     private JPanel presidentialCandidatesPanel;
     private JPanel secretarialCandidatesPanel;
     private JPanel treasurerCandidatesPanel;
+    private ButtonGroup presidentialCandidatesButtonGroup;
 
     private VotingSystem() {
         mainScrollPanel.getVerticalScrollBar().setUnitIncrement(20);
         logoutButton.setVisible(false);
+
+        presidentialCandidatesButtonGroup = new ButtonGroup();
+        presidentialCandidatesButtonGroup.add(voteForOnealRadioButton);
+        presidentialCandidatesButtonGroup.add(voteForFredaRadioButton);
+
         loginButton.addActionListener(e -> LoginForm.main(mainFrame, this));
         registerButton.addActionListener(e -> SignUpForm.main(mainFrame, this));
         logoutButton.addActionListener(e -> setUser(null));
@@ -35,6 +40,28 @@ public class VotingSystem {
         });
 
 //        fetchCandidates("Presidential");
+        presidentialVoteButton.addActionListener(e -> {
+            if (user == null) {
+                showAlertErrorMessage("Please login to vote", "Vote Error");
+                return;
+            }
+
+            ButtonModel selectedRadioButton = presidentialCandidatesButtonGroup.getSelection();
+            if (selectedRadioButton != null) {
+                String selectionCandidateId = selectedRadioButton.getActionCommand();
+                int candidateId = Integer.parseInt(selectionCandidateId);
+                System.out.println(selectionCandidateId);
+
+                // insert vote here
+                boolean voteInserted = insertVote("Presidential", candidateId, user.id);
+                if (voteInserted) {
+                    showAlertSuccessMessage("You have successfully voted for a presidential candidate", "Vote Successful");
+                }
+            } else {
+                showAlertErrorMessage("Please select a candidate to vote for", "Vote Error");
+            }
+
+        });
     }
 
     // function to create menu bar
@@ -137,6 +164,24 @@ public class VotingSystem {
         initialize();
     }
 
+    public void showAlertErrorMessage(String message, String title) {
+        JOptionPane.showMessageDialog(
+                mainFrame,
+                message,
+                title,
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+
+    private void showAlertSuccessMessage(String message, String title) {
+        JOptionPane.showMessageDialog(
+                mainFrame,
+                message,
+                title,
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
     public void fetchCandidates(String type) {
         final String DB_URL = "jdbc:mysql://localhost/voting_system?serverTimezone=UTC";
         final String USERNAME = "root";
@@ -167,9 +212,55 @@ public class VotingSystem {
                     System.out.println(avatar);
                 }
             }
+
+            stmt.close();
+            dbConnection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean insertVote(String type, int candidateId, int userId) {
+        final String DB_URL = "jdbc:mysql://localhost/voting_system?serverTimezone=UTC";
+        final String USERNAME = "root";
+        final String PASSWORD = "";
+
+        boolean insertSuccessful = false;
+
+        try {
+            Connection dbConnection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            // Connected to DB successfully
+
+            Statement stmt = dbConnection.createStatement();
+            String insertVoteSqlQuery = "INSERT into vote (candidateId, userId) VALUES (?,?)";
+            String checkUserAlreadyVotedSqlQuery = "SELECT * FROM `vote` LEFT JOIN `candidate` ON `vote`.`candidateId` = `candidate`.`id` WHERE `type`=? AND `userId`=?;";
+            PreparedStatement checkUserAlreadyVotedPreparedStatement = dbConnection.prepareStatement(checkUserAlreadyVotedSqlQuery);
+            checkUserAlreadyVotedPreparedStatement.setString(1, type);
+            checkUserAlreadyVotedPreparedStatement.setInt(2, userId);
+
+            ResultSet resultSet = checkUserAlreadyVotedPreparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                showAlertErrorMessage("You have already voted for a " + type + " candidate", "Already Voted");
+                throw new Exception("user already voted for a " + type + " candidate");
+            }
+
+            PreparedStatement preparedStatement = dbConnection.prepareStatement(insertVoteSqlQuery);
+            preparedStatement.setInt(1, candidateId);
+            preparedStatement.setInt(2, userId);
+            int insertedRows = preparedStatement.executeUpdate();
+
+            if (insertedRows > 0) {
+                insertSuccessful = true;
+            }
+
+            stmt.close();
+            dbConnection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return insertSuccessful;
     }
 
     public void setUser(User user) {
